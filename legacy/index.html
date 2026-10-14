@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musicable - Professional Audio & Image Processor</title>
+    <meta name="description"
+        content="Tối ưu hóa âm nhạc và hình ảnh của bạn theo chuẩn công nghiệp (WAV 44.1kHz 16-bit & 3000x3000px PNG).">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <main class="container">
+        <header class="header">
+            <div class="logo">
+                <i data-lucide="music-4" class="logo-icon"></i>
+                <h1 class="gradient-text">Musicable</h1>
+            </div>
+            <p class="subtitle">Trình xử lý audio và hình ảnh chuẩn studio</p>
+        </header>
+
+        <section class="upload-section">
+            <div id="drop-zone" class="drop-zone">
+                <input type="file" id="file-input" multiple accept="audio/*,image/*,.zip" hidden>
+                <div class="drop-zone-content">
+                    <div class="icon-stack">
+                        <i data-lucide="upload-cloud" class="upload-icon"></i>
+                    </div>
+                    <h3>Thả tệp vào đây hoặc nhấn để chọn</h3>
+                    <p>Hỗ trợ Audio, Hình ảnh và tệp ZIP</p>
+                    <div class="formats-info">
+                        <span>WAV 44.1kHz 16-bit</span>
+                        <span class="separator">•</span>
+                        <span>PNG 3000x3000px</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="process-section" class="process-section hidden">
+            <div class="section-header">
+                <h2>Danh sách tệp (<span id="file-count">0</span>)</h2>
+                <div class="actions">
+                    <button id="clear-btn" class="btn btn-secondary">
+                        <i data-lucide="trash-2"></i> Xóa tất cả
+                    </button>
+                    <button id="process-btn" class="btn btn-primary">
+                        <i data-lucide="zap"></i> Xử lý ngay
+                    </button>
+                </div>
+            </div>
+
+            <div id="file-list" class="file-list">
+                <!-- File items will be injected here -->
+            </div>
+
+            <div id="result-actions" class="result-actions hidden">
+                <button id="download-zip-btn" class="btn btn-success btn-lg">
+                    <i data-lucide="download"></i> Tải xuống Musicable.zip
+                </button>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&copy; 2026 tienanh109 x Musicable. Thank to Claude for UI.</p>
+        </footer>
+    </main>
+
+    <!-- Templates -->
+    <template id="file-item-template">
+        <div class="file-item">
+            <div class="file-info">
+                <div class="file-icon">
+                    <i data-lucide="file"></i>
+                </div>
+                <div class="file-details">
+                    <span class="file-name">filename.mp3</span>
+                    <span class="file-meta">Đang chờ...</span>
+                </div>
+            </div>
+            <div class="file-status">
+                <div class="spinner hidden"></div>
+                <i data-lucide="check-circle-2" class="status-icon success hidden"></i>
+                <i data-lucide="alert-circle" class="status-icon error hidden"></i>
+                <button class="download-single-btn hidden" title="Tải xuống tệp này">
+                    <i data-lucide="download"></i>
+                </button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </template>
+
+    <script src="js/wav-encoder.js"></script>
+    <script src="js/processor.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

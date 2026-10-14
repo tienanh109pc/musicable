@@ -1,0 +1,1118 @@
+<!-- 2026 Copyrighted by tienanh109 -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Musicable - Professional Audio & Image Processor</title>
+    <meta name="description"
+        content="Optimize music and images to industry standards or custom studio presets (WAV, MP3 320kbps, Slowed/8D/Reverb Remix, PNG/JPG with Logo Watermark).">
+    <meta name="color-scheme" content="dark">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎵</text></svg>">
+    <!-- JSZip for batch archiving -->
+    <script src="js/jszip.min.js"></script>
+    <!-- LameJS for 320kbps MP3 encoding in browser -->
+    <script src="js/lame.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="js/lucide.min.js"></script>
+</head>
+
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <main class="container">
+        <!-- Top Nav Header -->
+        <header class="header">
+            <div class="logo">
+                <i data-lucide="music-4" class="logo-icon"></i>
+                <h1 class="gradient-text">Musicable</h1>
+            </div>
+            <!-- Mode Switcher (Active when Lab Mode is enabled in Beta Settings) -->
+            <div id="mode-switcher-container" class="mode-switcher-container hidden">
+                <button type="button" id="btn-mode-studio" class="mode-switch-btn active" data-mode="studio">
+                    <i data-lucide="layout-grid"></i> <span data-i18n="modeStudio">Studio Mode</span>
+                </button>
+                <button type="button" id="btn-mode-lab" class="mode-switch-btn" data-mode="lab">
+                    <i data-lucide="flask-conical"></i> <span data-i18n="modeLab">Lab Mode 🧪</span>
+                </button>
+            </div>
+            <p class="subtitle" data-i18n="subtitle">Studio-standard audio and image processor</p>
+            <div class="header-actions">
+                <button id="open-settings-btn" class="btn btn-secondary glass-btn" data-i18n-title="btnOptions">
+                    <i data-lucide="settings-2"></i>
+                    <span data-i18n="btnOptions">Settings</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- STUDIO MODE VIEW (DEFAULT BATCH WORKFLOW) -->
+        <div id="studio-view" class="studio-view">
+            <!-- Drop Zone -->
+            <section class="upload-section">
+                <div id="drop-zone" class="drop-zone">
+                    <input type="file" id="file-input" multiple accept="audio/*,image/*,.zip" hidden>
+                    <div class="drop-zone-content">
+                        <div class="icon-stack">
+                            <i data-lucide="upload-cloud" class="upload-icon"></i>
+                        </div>
+                        <h3 data-i18n="dropTitle">Drop files here or click to select</h3>
+                        <p data-i18n="dropDesc">Supports Audio, Images and ZIP files</p>
+                        <div class="formats-info" id="active-preset-badge">
+                            <span id="badge-audio">WAV 44.1kHz 16-bit</span>
+                            <span class="separator">•</span>
+                            <span id="badge-image">PNG 3000x3000px</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Section -->
+            <section id="process-section" class="process-section hidden">
+                <div class="section-header">
+                    <h2><span data-i18n="fileList">File List</span> (<span id="file-count">0</span>)</h2>
+                    <div class="actions">
+                        <button id="clear-btn" class="btn btn-secondary">
+                            <i data-lucide="trash-2"></i> <span data-i18n="clearAll">Clear all</span>
+                        </button>
+                        <button id="process-btn" class="btn btn-primary">
+                            <i data-lucide="zap"></i> <span data-i18n="processNow">Process now</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="file-list" class="file-list">
+                    <!-- File items dynamically injected -->
+                </div>
+
+                <div id="result-actions" class="result-actions hidden">
+                    <div class="zip-export-container">
+                        <div class="zip-input-wrapper">
+                            <i data-lucide="archive" class="zip-input-icon"></i>
+                            <input type="text" id="zip-name-input" class="zip-name-input" value="Musicable"
+                                placeholder="Archive filename" data-i18n-placeholder="zipNamePlaceholder">
+                            <span class="zip-ext">.zip</span>
+                        </div>
+                        <button id="download-zip-btn" class="btn btn-success btn-lg">
+                            <i data-lucide="download"></i> <span data-i18n="downloadZip">Download</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- LAB MODE VIEW (EXPERIMENTAL AUDIO WORKSTATION) -->
+        <div id="lab-view" class="lab-view hidden">
+            <!-- Lab Hero Header -->
+            <div class="lab-hero-card">
+                <div class="lab-hero-header">
+                    <div class="lab-hero-title">
+                        <i data-lucide="flask-conical" class="lab-hero-icon"></i>
+                        <div>
+                            <h2 data-i18n="labTitle">Musicable Lab</h2>
+                            <p class="subtitle" data-i18n="labSubtitle">Single-track experimental audio workstation & mixer</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single Track Drop Zone -->
+            <div id="lab-drop-zone" class="drop-zone lab-drop-zone">
+                <input type="file" id="lab-file-input" accept="audio/*" hidden>
+                <div class="drop-zone-content">
+                    <div class="icon-stack">
+                        <i data-lucide="disc-3" class="upload-icon"></i>
+                    </div>
+                    <h3 data-i18n="dropLabTrack">Drop single track here or browse</h3>
+                    <p data-i18n="dropLabDesc">Supports MP3, WAV, FLAC, OGG, M4A, AAC</p>
+                </div>
+            </div>
+
+            <!-- Loaded Track Card with Waveform & Player -->
+            <div id="lab-track-card" class="lab-track-card hidden">
+                <div class="lab-track-header">
+                    <div class="lab-track-info-left">
+                        <i data-lucide="music-2" class="lab-track-icon"></i>
+                        <div>
+                            <h3 id="lab-track-name" class="lab-track-filename">track.mp3</h3>
+                            <span id="lab-track-meta" class="lab-track-meta-text">0:00 • 0.0 MB</span>
+                        </div>
+                    </div>
+                    <button type="button" id="lab-remove-track-btn" class="btn-micro btn-danger" title="Change track">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <div class="lab-player-box">
+                    <canvas id="lab-wave-canvas" class="lab-wave-canvas"></canvas>
+                    <div class="lab-player-controls">
+                        <button type="button" id="lab-play-btn" class="lab-play-btn">
+                            <i data-lucide="play"></i>
+                        </button>
+                        <div class="lab-seek-bar-container">
+                            <input type="range" id="lab-seek-slider" min="0" max="100" value="0" step="0.1" class="form-range">
+                        </div>
+                        <div class="lab-time-display">
+                            <span id="lab-current-time">0:00</span> / <span id="lab-total-time">0:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Presets Quick Bar -->
+                <div class="lab-presets-bar">
+                    <span class="lab-presets-label"><i data-lucide="sparkles"></i> Quick Mix:</span>
+                    <button type="button" class="btn-chip lab-preset-btn" data-preset="slowed-reverb">Slowed & Reverb</button>
+                    <button type="button" class="btn-chip lab-preset-btn" data-preset="sped-up">Sped Up (+2)</button>
+                    <button type="button" class="btn-chip lab-preset-btn" data-preset="bass-heavy">Bass Boost Heavy</button>
+                    <button type="button" class="btn-chip lab-preset-btn" data-preset="8d-experience">8D Audio</button>
+                    <button type="button" class="btn-chip lab-preset-btn" data-preset="clean">Reset Clean</button>
+                </div>
+
+                <!-- Effects Rack Grid -->
+                <div class="lab-effects-grid">
+                    <!-- Effect 1: Pitch & Speed -->
+                    <div class="lab-fx-card">
+                        <div class="lab-fx-card-header">
+                            <div class="lab-fx-title">
+                                <i data-lucide="music"></i>
+                                <span data-i18n="pitchShift">Pitch Edit</span>
+                            </div>
+                            <div class="lab-fx-val-row">
+                                <span id="lab-pitch-val" class="badge-value">0 st</span>
+                                <button type="button" id="lab-pitch-reset" class="btn-micro" title="Reset pitch">Reset</button>
+                            </div>
+                        </div>
+                        <input type="range" id="lab-pitch-slider" min="-12" max="12" value="0" step="1" class="form-range">
+                        <div class="slider-marks">
+                            <span>-12 (Octave Down)</span>
+                            <span>0</span>
+                            <span>+12 (Octave Up)</span>
+                        </div>
+                    </div>
+
+                    <!-- Effect 2: Studio Bass Boost -->
+                    <div class="lab-fx-card">
+                        <div class="lab-fx-card-header">
+                            <div class="lab-fx-title">
+                                <i data-lucide="volume-2"></i>
+                                <span data-i18n="bassBoost">Bass Boost</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="lab-bass-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div id="lab-bass-controls" class="lab-subcontrols hidden">
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label class="form-label"><span data-i18n="bassFreq">Cutoff</span>: <span id="lab-bass-freq-val">100 Hz</span></label>
+                                    <input type="range" id="lab-bass-freq" min="60" max="250" value="100" step="5" class="form-range">
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label"><span data-i18n="bassGain">Boost Gain</span>: <span id="lab-bass-gain-val">+10 dB</span></label>
+                                    <input type="range" id="lab-bass-gain" min="2" max="18" value="10" step="1" class="form-range">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Effect 3: 8D Audio Panning -->
+                    <div class="lab-fx-card">
+                        <div class="lab-fx-card-header">
+                            <div class="lab-fx-title">
+                                <i data-lucide="headphones"></i>
+                                <span data-i18n="enable8D">8D Audio Panning</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="lab-8d-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div id="lab-8d-controls" class="lab-subcontrols hidden">
+                            <label class="form-label"><span data-i18n="speed8D">Speed</span>: <span id="lab-8d-speed-val">0.20 Hz</span></label>
+                            <input type="range" id="lab-8d-speed" min="0.05" max="0.8" value="0.2" step="0.05" class="form-range">
+                        </div>
+                    </div>
+
+                    <!-- Effect 4: Reverb Simulation -->
+                    <div class="lab-fx-card">
+                        <div class="lab-fx-card-header">
+                            <div class="lab-fx-title">
+                                <i data-lucide="sparkles"></i>
+                                <span data-i18n="reverb">Reverb Simulation</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="lab-reverb-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div id="lab-reverb-controls" class="lab-subcontrols hidden">
+                            <label class="form-label"><span data-i18n="reverbMix">Mix</span>: <span id="lab-reverb-mix-val">45%</span></label>
+                            <input type="range" id="lab-reverb-mix" min="10" max="100" value="45" class="form-range">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Audio Joiner (Merge 2 Tracks) -->
+                <div class="lab-section-card">
+                    <div class="lab-section-header">
+                        <div class="lab-section-title">
+                            <i data-lucide="git-merge"></i>
+                            <strong data-i18n="audioJoiner">Audio Joiner (Merge 2 Tracks)</strong>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="lab-join-enable-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div id="lab-join-section" class="lab-join-body hidden">
+                        <input type="file" id="lab-join-file-input" accept="audio/*" hidden>
+                        <div class="join-controls-row">
+                            <button type="button" id="lab-join-select-btn" class="btn btn-secondary">
+                                <i data-lucide="plus-circle"></i> <span data-i18n="chooseSecondTrack">Choose 2nd Audio Track to Merge</span>
+                            </button>
+                            <div class="join-mode-wrapper">
+                                <label class="form-label" data-i18n="joinMode">Merge Mode</label>
+                                <select id="lab-join-mode" class="form-select">
+                                    <option value="sequential" data-i18n="joinSequential">Sequential (End-to-End)</option>
+                                    <option value="crossfade" data-i18n="joinCrossfade">Crossfade (2.5s Smooth Blend)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="lab-join-track-info" class="lab-join-info-box"></div>
+                    </div>
+                </div>
+
+                <!-- Section: MD3 / ID3 Metadata Editor -->
+                <div class="lab-section-card">
+                    <div class="lab-section-header">
+                        <div class="lab-section-title">
+                            <i data-lucide="tag"></i>
+                            <strong data-i18n="mp3TagsTitle">MD3 / ID3 Metadata Editor</strong>
+                        </div>
+                    </div>
+                    <div class="lab-tags-grid">
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="tagTitle">Track Title</label>
+                            <input type="text" id="lab-tag-title" class="form-input" placeholder="Title">
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="tagArtist">Artist</label>
+                            <input type="text" id="lab-tag-artist" class="form-input" placeholder="Artist name">
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="tagAlbum">Album</label>
+                            <input type="text" id="lab-tag-album" class="form-input" placeholder="Album name">
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="tagYear">Year</label>
+                            <input type="text" id="lab-tag-year" class="form-input" placeholder="2026">
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="tagGenre">Genre</label>
+                            <input type="text" id="lab-tag-genre" class="form-input" placeholder="Remix / Pop / EDM">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Lyrics & Production Scratchpad -->
+                <div class="lab-section-card">
+                    <div class="lab-section-header">
+                        <div class="lab-section-title">
+                            <i data-lucide="file-text"></i>
+                            <strong data-i18n="lyricsTitle">Lyrics & Production Scratchpad</strong>
+                        </div>
+                        <button type="button" id="lab-lyrics-save-btn" class="btn btn-secondary btn-sm">
+                            <i data-lucide="save"></i> <span data-i18n="lyricsSaveBtn">Save Lyrics to Local Storage</span>
+                        </button>
+                    </div>
+                    <div class="lyrics-warning-box">
+                        <i data-lucide="alert-triangle" class="warning-icon"></i>
+                        <span data-i18n="lyricsNotice">Notice: Lyrics & notes are stored locally in your browser and will NOT be included in Settings Backup JSON!</span>
+                    </div>
+                    <textarea id="lab-lyrics-input" class="lab-lyrics-textarea" rows="6" placeholder="Type or paste lyrics, chord progressions, mixing notes here..." data-i18n-placeholder="lyricsPlaceholder"></textarea>
+                    <div id="lab-lyrics-saved-notice" class="lyrics-saved-toast hidden">
+                        <i data-lucide="check"></i> <span data-i18n="lyricsSaved">Lyrics saved locally!</span>
+                    </div>
+                </div>
+
+                <!-- Section: Render & Export Studio Bar -->
+                <div class="lab-export-card">
+                    <div class="lab-export-controls">
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="exportFilename">Output Filename</label>
+                            <input type="text" id="lab-export-filename" class="form-input" value="Musicable_Lab_Mix">
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="exportFormat">Export Format</label>
+                            <select id="lab-export-format" class="form-select">
+                                <option value="mp3-320kbps">MP3 320kbps (with ID3 Tags)</option>
+                                <option value="wav-16bit">WAV 44.1kHz 16-bit Studio</option>
+                            </select>
+                        </div>
+                        <button type="button" id="lab-render-btn" class="btn btn-primary btn-lg btn-render-lab">
+                            <i data-lucide="download"></i> <span data-i18n="renderAndSave">Render Full & Save</span>
+                        </button>
+                    </div>
+                    <div id="lab-render-status" class="lab-render-status-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; <span id="current-year"></span> <span data-i18n="footerText">Musicable. Processed entirely in your browser.</span> • <a href="https://github.com/tienanh109pc/musicable" target="_blank" rel="noopener noreferrer" class="footer-link"><i data-lucide="github" class="icon-inline"></i> GitHub</a></p>
+        </footer>
+    </main>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content modal-lg">
+            <button id="close-settings-modal" class="close-modal">
+                <i data-lucide="x"></i>
+            </button>
+            <div class="modal-header">
+                <i data-lucide="sliders" class="header-modal-icon"></i>
+                <h2 data-i18n="settingsTitle">Studio Settings</h2>
+            </div>
+
+            <!-- Settings Tabs Navigation -->
+            <div class="settings-tabs">
+                <button class="tab-btn active" data-tab="tab-presets">
+                    <i data-lucide="sliders-horizontal"></i> <span data-i18n="tabPresets">Presets</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-logo">
+                    <i data-lucide="stamp"></i> <span data-i18n="tabLogo">Logo Watermark</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-beta">
+                    <i data-lucide="flask-conical"></i> <span data-i18n="tabBeta">Beta Features</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-language">
+                    <i data-lucide="globe"></i> <span data-i18n="tabLanguage">Language</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-credits">
+                    <i data-lucide="heart"></i> <span data-i18n="tabCredits">Credits</span>
+                </button>
+                <button class="tab-btn" data-tab="tab-data">
+                    <i data-lucide="shield-check"></i> <span data-i18n="tabData">Data & Privacy</span>
+                </button>
+            </div>
+
+            <!-- Tab 1: Presets -->
+            <div id="tab-presets" class="tab-pane active">
+                <div class="form-group">
+                    <label class="form-label" data-i18n="activePreset">Active Preset</label>
+                    <div class="preset-choice-cards">
+                        <label class="preset-card">
+                            <input type="radio" name="preset-type" value="default" id="preset-radio-default" checked>
+                            <div class="preset-card-body">
+                                <span class="preset-title" data-i18n="presetDefault">Default Standard (WAV 16-bit / 3000px PNG)</span>
+                                <span class="preset-desc" data-i18n="presetDefaultDesc">WAV 44.1kHz 16-bit • PNG 3000x3000px</span>
+                            </div>
+                        </label>
+                        <label class="preset-card">
+                            <input type="radio" name="preset-type" value="custom" id="preset-radio-custom">
+                            <div class="preset-card-body">
+                                <span class="preset-title" data-i18n="presetCustom">Custom Studio Preset</span>
+                                <span class="preset-desc" data-i18n="presetCustomDesc">Custom audio bitrate, image dimensions & formats</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="custom-preset-fields" class="custom-fields-box hidden">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="audioOutput">Audio Output Format</label>
+                            <select id="custom-audio-format" class="form-select">
+                                <option value="wav-16bit">WAV (44.1kHz 16-bit PCM)</option>
+                                <option value="mp3-320kbps">MP3 (320kbps Studio Quality)</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="imageFormat">Image Output Format</label>
+                            <select id="custom-image-format" class="form-select">
+                                <option value="png">PNG (Lossless Transparency)</option>
+                                <option value="jpg">JPG (High Quality 95%)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="imageSize">Image Resolution</label>
+                            <select id="custom-image-size" class="form-select">
+                                <option value="1024x1024">1024 x 1024 px (Fast / Web)</option>
+                                <option value="2048x2048">2048 x 2048 px (HD Streaming)</option>
+                                <option value="3000x3000">3000 x 3000 px (Industry Standard)</option>
+                                <option value="6000x6000">6000 x 6000 px (Ultra High-Res)</option>
+                                <option value="custom">Custom Size...</option>
+                            </select>
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="imageSizeMethod">Image Size Method</label>
+                            <select id="custom-image-size-method" class="form-select">
+                                <option value="crop" data-i18n="imageMethodCrop">1. Cắt ở giữa (Crop Center)</option>
+                                <option value="stretch" data-i18n="imageMethodStretch" selected>2. Kéo giãn cho vuông (Mặc định)</option>
+                                <option value="none" data-i18n="imageMethodNone">3. Không làm gì cả (Giữ nguyên gốc)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="custom-dimension-inputs" class="form-row hidden">
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="width">Width (px)</label>
+                            <input type="number" id="custom-width" class="form-input" value="2048" min="200" max="10000">
+                        </div>
+                        <div class="form-col">
+                            <label class="form-label" data-i18n="height">Height (px)</label>
+                            <input type="number" id="custom-height" class="form-input" value="2048" min="200" max="10000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-action">
+                    <button id="save-presets-btn" class="btn btn-primary" data-i18n="savePreset">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Tab 2: Logo Watermark -->
+            <div id="tab-logo" class="tab-pane">
+                <div class="toggle-row">
+                    <div>
+                        <span class="toggle-title" data-i18n="logoEnable">Enable Logo Watermark on Images</span>
+                        <p class="toggle-desc" data-i18n="logoDesc">Automatically places your record label or watermark logo on processed pictures.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="logo-enable-toggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="watermark-editor-grid">
+                    <div class="watermark-controls">
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="uploadLogo">Upload Logo (PNG/JPG)</label>
+                            <input type="file" id="logo-file-input" accept="image/*" class="form-file">
+                        </div>
+
+                        <div class="form-group">
+                            <div class="slider-header">
+                                <label class="form-label" data-i18n="logoSize">Logo Size</label>
+                                <span id="logo-size-val">20%</span>
+                            </div>
+                            <input type="range" id="logo-size-slider" min="5" max="60" value="20" class="form-range">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" data-i18n="logoPosition">Logo Position</label>
+                            <select id="logo-position-select" class="form-select">
+                                <option value="bottom-right" data-i18n="posBottomRight">Bottom Right</option>
+                                <option value="bottom-left" data-i18n="posBottomLeft">Bottom Left</option>
+                                <option value="top-right" data-i18n="posTopRight">Top Right</option>
+                                <option value="top-left" data-i18n="posTopLeft">Top Left</option>
+                                <option value="center" data-i18n="posCenter">Center</option>
+                                <option value="custom" data-i18n="posCustom">Free Placement (Drag & Drop)</option>
+                            </select>
+                        </div>
+
+                        <div id="free-pos-controls" class="form-row hidden">
+                            <div class="form-col">
+                                <div class="slider-header">
+                                    <label class="form-label" data-i18n="posX">Position X</label>
+                                    <span id="logo-free-x-val">75%</span>
+                                </div>
+                                <input type="range" id="logo-free-x" min="0" max="100" value="75" class="form-range">
+                            </div>
+                            <div class="form-col">
+                                <div class="slider-header">
+                                    <label class="form-label" data-i18n="posY">Position Y</label>
+                                    <span id="logo-free-y-val">75%</span>
+                                </div>
+                                <input type="range" id="logo-free-y" min="0" max="100" value="75" class="form-range">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="slider-header">
+                                <label class="form-label" data-i18n="logoOpacity">Opacity</label>
+                                <span id="logo-opacity-val">90%</span>
+                            </div>
+                            <input type="range" id="logo-opacity-slider" min="10" max="100" value="90" class="form-range">
+                        </div>
+
+                        <!-- Extra Watermark Options: Invert Colors & Allow Overflow -->
+                        <div class="watermark-tools-group">
+                            <label class="watermark-tool-pill" title="Đảo ngược màu logo (Trắng ⇄ Đen)">
+                                <input type="checkbox" id="logo-invert-color">
+                                <span class="pill-content">
+                                    <i data-lucide="sun-moon"></i>
+                                    <span data-i18n="invertLogoColor">Invert Colors</span>
+                                </span>
+                            </label>
+
+                            <label class="watermark-tool-pill" title="Cho phép logo kéo tràn viền / ra ngoài ảnh">
+                                <input type="checkbox" id="logo-allow-overflow">
+                                <span class="pill-content">
+                                    <i data-lucide="expand"></i>
+                                    <span data-i18n="allowLogoOverflow">Allow Edge Overflow</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="watermark-preview-box">
+                        <div class="art-select-header">
+                            <label class="form-label-xs" data-i18n="previewArtwork">Preview Artwork</label>
+                            <div class="art-select-actions">
+                                <select id="watermark-art-select" class="form-select-sm">
+                                    <option value="demo" data-i18n="demoVinyl">Demo Vinyl Art</option>
+                                </select>
+                                <label class="btn-preview-upload-art" title="Choose or upload an image to preview" data-i18n-title="uploadPreviewArt">
+                                    <i data-lucide="image-plus"></i>
+                                    <input type="file" id="preview-art-upload" accept="image/*" style="display:none;">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="canvas-wrapper">
+                            <canvas id="watermark-preview-canvas" width="300" height="300"></canvas>
+                        </div>
+                        <div class="preview-info-row">
+                            <span id="active-art-label" class="active-art-badge">🎵 Demo Vinyl</span>
+                            <span class="preview-caption" data-i18n="dragTip">🎯 Drag & drop logo directly on canvas to reposition</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer-action">
+                    <button id="save-watermark-btn" class="btn btn-primary" data-i18n="savePreset">Save Settings</button>
+                </div>
+            </div>
+
+            <!-- Tab 3: Language -->
+            <div id="tab-language" class="tab-pane">
+                <div class="language-selection-cards">
+                    <label class="preset-card">
+                        <input type="radio" name="lang-choice" value="en" id="lang-en" checked>
+                        <div class="preset-card-body">
+                            <span class="preset-title">🇺🇸 English (Default)</span>
+                            <span class="preset-desc" data-i18n="langEnDesc">Switch interface language to English</span>
+                        </div>
+                    </label>
+                    <label class="preset-card">
+                        <input type="radio" name="lang-choice" value="vi" id="lang-vi">
+                        <div class="preset-card-body">
+                            <span class="preset-title">🇻🇳 Tiếng Việt</span>
+                            <span class="preset-desc" data-i18n="langViDesc">Chuyển ngôn ngữ giao diện sang Tiếng Việt</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tab 4: Credits -->
+            <div id="tab-credits" class="tab-pane">
+                <div class="credits-box">
+                    <div class="credit-item">
+                        <span class="label" data-i18n="mainAuthor">Main Author</span>
+                        <span class="value">tienanh109</span>
+                    </div>
+                    <div class="credit-divider"></div>
+                    <div class="credit-item">
+                        <span class="label" data-i18n="uiDesign">UI Design</span>
+                        <span class="value">Claude x Gemini</span>
+                    </div>
+                    <div class="credit-divider"></div>
+                    <div class="credit-item">
+                        <span class="label" data-i18n="githubRepo">GitHub</span>
+                        <a href="https://github.com/tienanh109pc/musicable" target="_blank" rel="noopener noreferrer" class="credit-link value">
+                            <i data-lucide="github"></i> tienanh109pc/musicable
+                        </a>
+                    </div>
+                    <p class="love-note" data-i18n="creditsNote">Made and designed by tienanh109<br>(UI design with Claude x Gemini) &lt;3</p>
+                </div>
+            </div>
+
+            <!-- Tab 5: Data & Privacy -->
+            <div id="tab-data" class="tab-pane">
+                <div class="privacy-banner">
+                    <i data-lucide="lock" class="privacy-icon"></i>
+                    <p data-i18n="privacyNotice">
+                        🔒 Zero Server Storage: All audio and image processing runs 100% locally inside your browser sandbox. No media files, personal data, or logs are ever transmitted to any external server.
+                    </p>
+                </div>
+
+                <div class="data-actions-grid">
+                    <button id="export-json-btn" class="btn btn-secondary">
+                        <i data-lucide="download"></i> <span data-i18n="exportJSON">Export Settings (JSON)</span>
+                    </button>
+                    
+                    <label class="btn btn-secondary upload-json-label">
+                        <i data-lucide="upload"></i> <span data-i18n="importJSON">Import Settings (JSON)</span>
+                        <input type="file" id="import-json-input" accept=".json" hidden>
+                    </label>
+
+                    <button id="reset-data-btn" class="btn btn-danger">
+                        <i data-lucide="trash-2"></i> <span data-i18n="deleteAllData">Clear Browser Data & Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab: Beta Features -->
+            <div id="tab-beta" class="tab-pane">
+                <div class="beta-header-box">
+                    <div class="beta-header-icon">
+                        <i data-lucide="flask-conical"></i>
+                    </div>
+                    <div>
+                        <h3 data-i18n="betaTitle">Beta & Experimental Features</h3>
+                        <p class="text-muted" data-i18n="betaDesc">Toggle experimental studio capabilities. All beta features are disabled by default.</p>
+                    </div>
+                </div>
+
+                <div class="beta-features-list">
+                    <!-- Feature 1: Trimmer & Fade -->
+                    <div class="beta-card">
+                        <div class="beta-card-info">
+                            <div class="beta-title-row">
+                                <strong data-i18n="betaTrimmerTitle">Visual Timeline Trimmer & Fade</strong>
+                                <span class="badge-beta">Beta</span>
+                            </div>
+                            <p class="beta-desc" data-i18n="betaTrimmerDesc">Enable bracket cursors [ ], visual timeline selector, start/end limits, and audio fade in/out inside Remix Studio.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="beta-toggle-trimmer">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Feature 2: Lab Mode -->
+                    <div class="beta-card">
+                        <div class="beta-card-info">
+                            <div class="beta-title-row">
+                                <strong data-i18n="betaLabModeTitle">Lab Mode (Experimental Audio Workstation)</strong>
+                                <span class="badge-beta badge-exp">Experimental</span>
+                            </div>
+                            <p class="beta-desc" data-i18n="betaLabModeDesc">Adds a 'Lab Mode' tab to the header for single-track sound mixing, pitch editing, bass boost, audio joining, and MP3 tag editing.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="beta-toggle-lab-mode">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REMIX & FX STUDIO MODAL -->
+    <div id="remix-modal" class="modal-overlay hidden">
+        <div class="modal-content modal-lg">
+            <button id="close-remix-modal" class="close-modal">
+                <i data-lucide="x"></i>
+            </button>
+            <div class="modal-header">
+                <i data-lucide="disc-3" class="header-modal-icon"></i>
+                <div>
+                    <h2 data-i18n="remixTitle">Remix & FX Studio</h2>
+                    <span id="remix-track-title" class="remix-track-subtitle">filename.mp3</span>
+                </div>
+            </div>
+
+            <div class="remix-body">
+                <!-- Action Mode: Direct Track Edit vs Multi-Remix Variations -->
+                <div class="remix-mode-selector-container">
+                    <div class="remix-mode-grid">
+                        <label class="remix-mode-card" id="mode-direct-edit-card">
+                            <input type="radio" name="remix-target-mode" id="mode-direct-track" value="direct">
+                            <div class="remix-mode-content">
+                                <div class="remix-mode-title-row">
+                                    <i data-lucide="sliders-horizontal" class="remix-mode-icon"></i>
+                                    <strong data-i18n="modeDirectTrack">Thay đổi trên chính track hiện tại</strong>
+                                </div>
+                                <span class="remix-mode-desc" data-i18n="modeDirectTrackDesc">Chỉnh sửa trực tiếp track này (khóa các tùy chọn bản phối)</span>
+                            </div>
+                        </label>
+                        <label class="remix-mode-card active" id="mode-variations-card">
+                            <input type="radio" name="remix-target-mode" id="mode-remix-variations" value="variations" checked>
+                            <div class="remix-mode-content">
+                                <div class="remix-mode-title-row">
+                                    <i data-lucide="layers" class="remix-mode-icon"></i>
+                                    <strong data-i18n="modeRemixVariations">Tạo các bản phối (Remixes)</strong>
+                                </div>
+                                <span class="remix-mode-desc" data-i18n="modeRemixVariationsDesc">Tạo nhiều phiên bản Slowed, Sped Up riêng biệt</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Preset Variations Selection -->
+                <div class="remix-section" id="remix-variations-section">
+                    <div class="remix-section-header">
+                        <label class="section-badge-label" data-i18n="selectPresets">Select Variations to Generate</label>
+                        <div id="remix-variations-locked-notice" class="variations-locked-badge hidden">
+                            <i data-lucide="lock"></i> <span data-i18n="remixLockedNotice">Đã khóa bản phối (Đang bật thay đổi trên chính track)</span>
+                        </div>
+                    </div>
+                    <div class="preset-chips-grid">
+                        <label class="chip-item locked">
+                            <input type="checkbox" id="preset-original" value="0" checked disabled>
+                            <span class="chip-text"><i data-lucide="lock" class="chip-icon"></i> <span data-i18n="original">Original</span> (0)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="-2" data-name="Slowed" checked>
+                            <span class="chip-text" data-i18n="slowed">Slowed (-2 semitones)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="-4" data-name="Super Slowed" checked>
+                            <span class="chip-text" data-i18n="superSlowed">Super Slowed (-4 semitones)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="+2" data-name="Sped Up" checked>
+                            <span class="chip-text" data-i18n="spedUp">Sped Up (+2 semitones)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="-6" data-name="Ultra Slowed">
+                            <span class="chip-text" data-i18n="ultraSlowed">Ultra Slowed (-6 semitones)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="-7" data-name="Over Slowed">
+                            <span class="chip-text" data-i18n="overSlowed">Over Slowed (-7 semitones)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="-8" data-name="Mega Slowed">
+                            <span class="chip-text" data-i18n="megaSlowed">Mega Slowed (-8 semitones)</span>
+                        </label>
+                        <label class="chip-item">
+                            <input type="checkbox" class="remix-chip-checkbox" value="+3" data-name="Super Sped Up">
+                            <span class="chip-text" data-i18n="superSpedUp">Super Sped Up (+3 semitones)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Advanced Effects Accordion / Box -->
+                <div class="remix-section fx-box">
+                    <div class="fx-header">
+                        <div class="fx-header-title">
+                            <i data-lucide="sparkles"></i>
+                            <span data-i18n="advancedFX">Advanced Effects</span>
+                        </div>
+                    </div>
+
+                    <div class="fx-body">
+                        <!-- 8D Audio Toggle & Speed -->
+                        <div class="form-row fx-row">
+                            <div class="toggle-inline">
+                                <label class="switch">
+                                    <input type="checkbox" id="fx-enable-8d">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-inline-label" data-i18n="enable8D">Enable 8D Audio Panning</span>
+                            </div>
+                            <div class="slider-compact hidden" id="fx-8d-speed-container">
+                                <span class="slider-label" data-i18n="speed8D">8D Speed</span>: <span id="fx-8d-speed-val">0.20 Hz</span>
+                                <input type="range" id="fx-8d-speed" min="0.05" max="0.8" step="0.05" value="0.2" class="form-range">
+                            </div>
+                        </div>
+
+                        <!-- Reverb Toggle, Type & Mix -->
+                        <div class="fx-subcard">
+                            <div class="toggle-inline">
+                                <label class="switch">
+                                    <input type="checkbox" id="fx-enable-reverb">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="toggle-inline-label" data-i18n="reverb">Reverb Simulation</span>
+                            </div>
+                            <div id="reverb-controls" class="reverb-controls-grid hidden">
+                                <div class="form-col">
+                                    <label class="form-label" data-i18n="reverbType">Space Type</label>
+                                    <select id="fx-reverb-type" class="form-select">
+                                        <option value="studio" data-i18n="roomStudio">Studio Room (Fast decay)</option>
+                                        <option value="hall" selected data-i18n="roomHall">Concert Hall (Warm)</option>
+                                        <option value="cave" data-i18n="roomCave">Cave (Deep & Echoing)</option>
+                                        <option value="cathedral" data-i18n="roomCathedral">Cathedral (Vast & Dreamy)</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <div class="slider-header">
+                                        <label class="form-label" data-i18n="roomSize">Room Size</label>
+                                        <span id="fx-reverb-size-val">60%</span>
+                                    </div>
+                                    <input type="range" id="fx-reverb-room-size" min="10" max="100" value="60" class="form-range">
+                                </div>
+                                <div class="form-col">
+                                    <div class="slider-header">
+                                        <label class="form-label" data-i18n="reverbMix">Reverb Mix</label>
+                                        <div class="mix-badge-group">
+                                            <span id="fx-reverb-mix-val">45%</span>
+                                            <button type="button" id="unlock-reverb-btn" class="btn-micro" data-i18n="unlock200">Unlock >100%</button>
+                                        </div>
+                                    </div>
+                                    <input type="range" id="fx-reverb-mix" min="0" max="100" value="45" class="form-range">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trimming & Visual Timeline Selector (Beta Feature - Default Hidden) -->
+                        <div id="remix-trim-section" class="remix-trim-section hidden">
+                            <!-- Trimming & Fade -->
+                            <div class="form-row fx-row">
+                                <div class="form-col">
+                                    <label class="form-label"><span data-i18n="startAt">Start at</span> (s)</label>
+                                    <input type="number" id="fx-trim-start" class="form-input" min="0" value="0" step="0.5">
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label"><span data-i18n="endAt">End at</span> (s)</label>
+                                    <input type="number" id="fx-trim-end" class="form-input" min="0" value="0" step="0.5" placeholder="End of track">
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label" data-i18n="fadeIn">Fade In (s)</label>
+                                    <input type="number" id="fx-fade-in" class="form-input" min="0" max="10" value="0" step="0.5">
+                                </div>
+                                <div class="form-col">
+                                    <label class="form-label" data-i18n="fadeOut">Fade Out (s)</label>
+                                    <input type="number" id="fx-fade-out" class="form-input" min="0" max="10" value="0" step="0.5">
+                                </div>
+                            </div>
+
+                            <!-- Visual Timeline Trimmer (Cursor & Selector) -->
+                            <div class="trim-visual-box">
+                                <div class="trim-visual-header">
+                                    <span class="trim-visual-label">
+                                        <i data-lucide="scissors"></i> <span data-i18n="visualTrimmer">Visual Timeline Trimmer (Cursor & Selector)</span>
+                                    </span>
+                                    <div class="trim-visual-stats">
+                                        <span id="trim-range-stat">0:00 - 0:00</span>
+                                        <span id="trim-duration-stat" class="badge-duration">0.0s</span>
+                                    </div>
+                                </div>
+
+                                <div class="trim-timeline-track" id="trim-timeline-track">
+                                    <div id="trim-dim-left" class="trim-dim-zone"></div>
+                                    <div id="trim-active-region" class="trim-active-region">
+                                        <div class="trim-region-fill"></div>
+                                    </div>
+                                    <div id="trim-dim-right" class="trim-dim-zone"></div>
+                                    <div id="trim-playhead" class="trim-playhead"></div>
+
+                                    <!-- Start Handle Cursor [ -->
+                                    <div id="trim-handle-start" class="trim-handle trim-handle-start" title="Drag to adjust Start time">
+                                        <span class="trim-handle-bracket">[</span>
+                                        <span class="trim-handle-tag" id="trim-start-tag">0:00</span>
+                                    </div>
+
+                                    <!-- End Handle Cursor ] -->
+                                    <div id="trim-handle-end" class="trim-handle trim-handle-end" title="Drag to adjust End time">
+                                        <span class="trim-handle-bracket">]</span>
+                                        <span class="trim-handle-tag" id="trim-end-tag">0:00</span>
+                                    </div>
+                                </div>
+
+                                <div class="trim-actions-bar">
+                                    <button type="button" id="btn-set-start-now" class="btn-trim-action">
+                                        <i data-lucide="flag"></i> <span data-i18n="setStartAtPlayhead">Set Start [ at current time</span>
+                                    </button>
+                                    <button type="button" id="btn-set-end-now" class="btn-trim-action">
+                                        <i data-lucide="flag-triangle-right"></i> <span data-i18n="setEndAtPlayhead">Set End ] at current time</span>
+                                    </button>
+                                    <button type="button" id="btn-preview-selection" class="btn-trim-action btn-preview-trim">
+                                        <i data-lucide="play-circle"></i> <span data-i18n="playTrimmedOnly">Preview Selected Segment</span>
+                                    </button>
+                                    <button type="button" id="btn-reset-trim" class="btn-trim-action btn-ghost" title="Reset to full track">
+                                        <i data-lucide="rotate-ccw"></i> <span data-i18n="resetTrim">Reset Full</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gain / Volume -->
+                        <div class="form-group">
+                            <div class="slider-header">
+                                <label class="form-label" data-i18n="gain">Volume / Gain</label>
+                                <span id="fx-gain-val">100%</span>
+                            </div>
+                            <input type="range" id="fx-gain" min="50" max="200" value="100" class="form-range">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full Preview Controller -->
+                <div class="preview-card">
+                    <div class="preview-controls-row">
+                        <button id="preview-play-btn" class="btn btn-secondary preview-btn">
+                            <i data-lucide="play"></i> <span id="preview-btn-text" data-i18n="previewRemix">Render & Preview Full</span>
+                        </button>
+                        <div class="preview-timeline-box">
+                            <input type="range" id="preview-seek-slider" min="0" max="100" value="0" step="0.1" class="preview-slider" disabled>
+                            <div class="preview-time-display">
+                                <span id="preview-current-time">0:00</span> / <span id="preview-total-time">0:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="preview-status" class="preview-status-text"></span>
+                    <audio id="preview-audio-element" style="display: none;"></audio>
+                </div>
+
+                <!-- Delete Original Option -->
+                <div class="remix-footer-options" id="remix-delete-original-container">
+                    <label class="remix-checkbox-label" for="delete-original-after-remix">
+                        <input type="checkbox" id="delete-original-after-remix">
+                        <span data-i18n="deleteOriginalAfterRemix">Delete original audio after creating remix</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer-action">
+                <button id="cancel-remix-btn" class="btn btn-secondary" data-i18n="cancel">Cancel</button>
+                <button id="generate-remix-btn" class="btn btn-primary btn-lg">
+                    <i data-lucide="sparkles"></i> <span data-i18n="generateRemix">Generate Remixes & Add to Queue</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ZIP Naming Modal -->
+    <div id="zip-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <i data-lucide="folder-archive" class="heart-icon" style="color: var(--primary); filter: drop-shadow(0 0 10px var(--primary-glow)); width: 3rem; height: 3rem; margin-bottom: 1rem;"></i>
+                <h2 data-i18n="zipNamingTitle">Name Your Folders</h2>
+            </div>
+            <div class="modal-body" id="zip-modal-body" style="max-height: 300px; overflow-y: auto; padding-right: 0.5rem;">
+                <!-- ZIP items injected here -->
+            </div>
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                <button id="cancel-zip-btn" class="btn btn-secondary" data-i18n="cancel">Cancel</button>
+                <button id="confirm-zip-btn" class="btn btn-primary" data-i18n="confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Mini Music Player (Popup with Spinning Disc) -->
+    <div id="mini-music-player" class="mini-player-popup hidden">
+        <div class="mini-player-content">
+            <!-- Spinning Vinyl Disc -->
+            <div class="mini-vinyl-wrapper" id="mini-vinyl-disc" title="Musicable Vinyl Player">
+                <div class="mini-vinyl-grooves"></div>
+                <div class="mini-vinyl-center">
+                    <div class="mini-vinyl-hole"></div>
+                </div>
+            </div>
+
+            <!-- Track Info & Controls -->
+            <div class="mini-player-main">
+                <div class="mini-player-header">
+                    <div class="mini-player-info">
+                        <span id="mini-player-title" class="mini-player-title">Track Name</span>
+                        <span id="mini-player-status" class="mini-player-status" data-i18n="nowPlaying">Now Playing</span>
+                    </div>
+                    <button id="mini-player-close" class="mini-player-close-btn" title="Close player">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <!-- Timeline / Scrubber (Tua được) -->
+                <div class="mini-player-timeline">
+                    <input type="range" id="mini-player-slider" min="0" max="100" value="0" step="0.1" class="mini-player-seek-slider">
+                    <div class="mini-player-time-row">
+                        <span id="mini-player-current-time">0:00</span>
+                        <span id="mini-player-total-time">0:00</span>
+                    </div>
+                </div>
+
+                <!-- Action Controls Row -->
+                <div class="mini-player-controls-row">
+                    <button id="mini-player-skip-back" class="mini-control-btn" title="Rewind 5s">
+                        <i data-lucide="rotate-ccw"></i>
+                    </button>
+                    <button id="mini-player-toggle" class="mini-control-btn play-pause-btn" title="Play/Pause">
+                        <i data-lucide="play" id="mini-toggle-icon"></i>
+                    </button>
+                    <button id="mini-player-skip-forward" class="mini-control-btn" title="Forward 5s">
+                        <i data-lucide="rotate-cw"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <audio id="mini-player-audio" style="display: none;"></audio>
+    </div>
+
+    <!-- Templates -->
+    <template id="file-item-template">
+        <div class="file-item">
+            <div class="file-info">
+                <div class="file-icon">
+                    <i data-lucide="file"></i>
+                </div>
+                <div class="file-details">
+                    <div class="file-name-row">
+                        <span class="file-name">filename.mp3</span>
+                        <button class="rename-file-btn" title="Rename file" data-i18n-title="btnRenameFile">
+                            <i data-lucide="pencil"></i>
+                        </button>
+                    </div>
+                    <div class="file-rename-container hidden">
+                        <input type="text" class="file-rename-input" spellcheck="false">
+                        <button class="btn-rename-confirm" title="Save name" data-i18n-title="saveRename">
+                            <i data-lucide="check"></i>
+                        </button>
+                        <button class="btn-rename-cancel" title="Cancel rename" data-i18n-title="cancelRename">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <span class="file-meta">Waiting...</span>
+                </div>
+            </div>
+            <div class="file-actions-group">
+                <button class="file-action-btn play-single-btn hidden" title="Play preview" data-i18n-title="btnPlayPreview">
+                    <i data-lucide="play"></i>
+                </button>
+                <button class="file-action-btn remix-btn hidden" title="Create Remix" data-i18n-title="btnRemix">
+                    <i data-lucide="disc-3"></i>
+                </button>
+                <button class="file-action-btn watermark-btn hidden" title="Logo Watermark" data-i18n-title="btnWatermark">
+                    <i data-lucide="stamp"></i>
+                </button>
+                <div class="spinner hidden"></div>
+                <i data-lucide="check-circle-2" class="status-icon success hidden"></i>
+                <i data-lucide="alert-circle" class="status-icon error hidden"></i>
+                <button class="download-single-btn hidden" title="Download this file">
+                    <i data-lucide="download"></i>
+                </button>
+                <button class="file-action-btn delete-single-btn" title="Delete this file" data-i18n-title="btnDeleteItem">
+                    <i data-lucide="trash-2"></i>
+                </button>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Application Scripts -->
+    <script src="js/i18n.js"></script>
+    <script src="js/settings-manager.js"></script>
+    <script src="js/wav-encoder.js"></script>
+    <script src="js/mp3-encoder.js"></script>
+    <script src="js/audio-effects.js"></script>
+    <script src="js/watermark.js"></script>
+    <script src="js/processor.js"></script>
+    <script src="js/lab-mode.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
+<!-- 2026 Copyrighted by tienanh109 -->
